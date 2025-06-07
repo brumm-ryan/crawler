@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    // emit the very latest JS features
+    "target": "ESNext",
+
+    // emit native ESM output
+    "module": "ESNext",
+
+    "moduleResolution": "Node",
+
+    "outDir": "./dist",
+    "rootDir": "./",
+
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // allow tsc to actually write the .js files
+    "noEmit": false
+  },
+  "include": ["*.ts", "api", "examples/run.ts"],
+  "exclude": ["node_modules", "dist"]
+}

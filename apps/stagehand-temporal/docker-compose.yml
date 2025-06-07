@@ -1,0 +1,101 @@
+version: "3.5"
+services:
+  mysql:
+    container_name: temporal-mysql
+    image: mysql:8.1.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/lib/mysql
+    networks:
+      - temporal-network
+
+  temporal:
+    container_name: temporal
+    image: temporalio/auto-setup:latest
+    depends_on:
+      - mysql
+    environment:
+      - DB=mysql8
+      - DB_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PWD=root
+      - MYSQL_SEEDS=mysql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "7233:7233"
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      - temporal-network
+
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    image: temporalio/admin-tools:latest
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+    networks:
+      - temporal-network
+
+  temporal-ui:
+    container_name: temporal-ui
+    image: temporalio/ui:latest
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - temporal-network
+
+  redis:
+    container_name: temporal-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - temporal-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stagehand-worker:latest
+    container_name: stagehand-worker
+    # mirror `--ipc=host`
+    ipc: host
+    # mirror `--user pwuser`
+    user: pwuser
+    # mirror `--security-opt seccomp=seccomp_profile.json`
+    security_opt:
+      - seccomp=./seccomp_profile.json
+    # mount code into the pwuser’s home dir (optional if you built all code into the image)
+    # volumes:
+    #   - ./:/home/pwuser/app
+    # use your existing env vars (e.g. TEMPORAL_ADDRESS)
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+      - mysql
+    networks:
+      - temporal-network
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+
+volumes:
+  redis-data:
