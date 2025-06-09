@@ -20,15 +20,20 @@ class BrowserPoolService {
 
         this.pool = genericPool.createPool({
           create: async () => {
-            const debugPort = await getPort();
+            const debugPort = await getPort({port: 5000});
             const browser = await chromium.launch({
-              args: [`--remote-debugging-port=${debugPort}`],
-              headless:false,
+              args: [`--remote-debugging-port=${debugPort}`,
+                `--remote-debugging-address=0.0.0.0`,
+                '--no-sandbox'],
+              headless:true,
+
+            }).catch(e => {
+              console.log(e)
             });
 
             // fetch the CDP endpoint
             const {webSocketDebuggerUrl: cdpUrl} = await fetch(
-                `http://127.0.0.1:${debugPort}/json/version`
+                `http://0.0.0.0:${debugPort}/json/version`
             ).then(r => r.json());
 
             // build your session wrapper
@@ -77,10 +82,10 @@ class BrowserPoolService {
       // Store the browser session with its ID
       this.activeBrowsers.set(browserSession.id, browserSession);
 
-      // Return the ID and CDP URL for the client
+      // Return the ID and CDP URL for the client (removing the ws://127.0.0.1: prefix)
       return { 
         id: browserSession.id, 
-        cdpUrl: browserSession.cdpUrl 
+        cdpUrl: browserSession.cdpUrl
       };
     } catch (error) {
       console.error('Error checking out browser:', error);

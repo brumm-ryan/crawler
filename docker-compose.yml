@@ -69,23 +69,42 @@ services:
 
   worker:
     build:
-      context: .
+      context: ./apps/stagehand-temporal
       dockerfile: Dockerfile
-    image: stagehand-worker:latest
-    container_name: stagehand-worker
-    # mirror `--ipc=host`
-    ipc: host
-    # mirror `--user pwuser`
-    user: pwuser
-    # mirror `--security-opt seccomp=seccomp_profile.json`
-    security_opt:
-      - seccomp=./seccomp_profile.json
-    # mount code into the pwuser’s home dir (optional if you built all code into the image)
-    # volumes:
-    #   - ./:/home/pwuser/app
-    # use your existing env vars (e.g. TEMPORAL_ADDRESS)
+    container_name: stagehand-temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
+      - REDIS_HOST=redis
+      - BROWSERLESS=browserless:3000
+    depends_on:
+      - temporal
+      - mysql
+      - redis
+      - browserless
+    networks:
+      - temporal-network
+
+  browserless:
+    image: ghcr.io/browserless/chromium
+    container_name: browserless
+    environment:
+      - CONCURRENT=10
+      - TOKEN=6R0W53R135510
+      - TIMEOUT=180000
+    ports:
+      - "3000:3000"
+    networks:
+      - temporal-network
+
+  crawl-ux:
+    container_name: crawl-ux
+    build:
+      context: ./apps/crawl-ux
+      dockerfile: Dockerfile
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "8081:80"
     depends_on:
       - temporal
       - mysql

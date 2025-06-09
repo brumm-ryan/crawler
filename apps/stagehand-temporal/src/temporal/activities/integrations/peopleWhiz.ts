@@ -3,8 +3,8 @@ import {DataSheet, SiteResults, SiteResultsSchema} from "../../types";
 import {getStagehand} from "../../../services/stagehand";
 import {actWithCache} from "../../../utils";
 
-export async function runPeopleWhiz(dataSheet: DataSheet, cdpUrl:string): Promise<SiteResults> {
-    const stagehand = await getStagehand(cdpUrl);
+export async function runPeopleWhiz(dataSheet: DataSheet): Promise<SiteResults> {
+    const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling people whiz');
     // Navigate to https://www.peoplewhiz.com/
@@ -17,9 +17,11 @@ export async function runPeopleWhiz(dataSheet: DataSheet, cdpUrl:string): Promis
     await actWithCache(page, "Click the search button", {cacheKey: "runPeopleWhiz-search-button", selfHeal: true})
     await page.waitForTimeout(1000);
 
-    await page.waitForSelector('#resultsPage > div:nth-child(2) > div.container > div > div > div > div > div.results-nav', {timeout: 65000});
+    await page.waitForSelector('#resultsPage > div:nth-child(2) > div.container > div > div > div > div > div.results-nav', {timeout: 75000});
 
     const resultPage = page.url();
+
+    console.log('Preparing to extract page: \n' + await page.content());
 
     const extractedResults = await page.extract({
         instruction: `

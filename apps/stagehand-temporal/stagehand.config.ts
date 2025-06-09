@@ -37,7 +37,6 @@ const StagehandConfig: ConstructorParams = {
       height: 768,
     },
     headless: false,
-    cdpUrl: "ws://127.0.0.1:58717/devtools/browser/bef2ddf4-eb1c-4097-bf25-553e692c1683"
   } /* Configuration options for the local browser */,
 };
 

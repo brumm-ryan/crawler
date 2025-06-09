@@ -34,13 +34,11 @@ export async function crawlWorkflow(dataSheet: DataSheet): Promise<Record<string
         };
     });
 
-    const browser = await activities.getInstance();
-
     for (const task of tasks) {
         try {
             const activityName = task.activity
             promises.push(
-                Promise.resolve(activities[activityName](task.data, browser.cdpUrl))
+                Promise.resolve(activities[activityName](task.data))
                     .then(res => {
                         results[task.siteId] = res;
                         return res;
@@ -58,8 +56,6 @@ export async function crawlWorkflow(dataSheet: DataSheet): Promise<Record<string
     }
 
     await Promise.allSettled(promises);
-
-    await activities.releaseInstance(browser);
 
     return results;
 }

@@ -1,8 +1,8 @@
 import {DataSheet, SiteResults, SiteResultsSchema} from "../../types";
 import {getStagehand} from "../../../services/stagehand";
 
-export async function runSmartBackgroundCheck(dataSheet: DataSheet, cdpUrl:string): Promise<SiteResults> {
-    const stagehand = await getStagehand(cdpUrl);
+export async function runSmartBackgroundCheck(dataSheet: DataSheet): Promise<SiteResults> {
+    const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling smartBackgroundCheck');
 
@@ -10,7 +10,9 @@ export async function runSmartBackgroundCheck(dataSheet: DataSheet, cdpUrl:strin
 
     await page.goto(searchUrl, {waitUntil: "domcontentloaded"});
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
+
+    console.log('Preparing to extract page: \n' + await page.content());
 
     const extractedResults = await page.extract({
         instruction: `
