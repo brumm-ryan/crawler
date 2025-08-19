@@ -39,8 +39,8 @@ export function createFieldMapper(customMappings?: FieldMappingConfig) {
 
 /**
  * Maps observed form fields to data values and updates the fields with the appropriate values
- * 
- * @param formFields - The observed form fields from Stagehand
+ *
+ * @param page
  * @param data - The data object containing values to fill in the form (can be a DataSheet or a generic object with string values)
  * @param customMappings - Optional custom mappings to override or extend the default mappings
  * @returns The updated form fields with values from the data object

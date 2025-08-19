@@ -9,6 +9,26 @@ npm install
 npm run start  
 ```
 
+# Docker Development with Hot Reloading
+
+This application supports hot reloading when running in Docker, which means you can see your changes immediately without having to rebuild the container.
+
+To run the application with hot reloading:
+
+```bash
+# From the repository root
+docker-compose up crawl-ux
+```
+
+The application will be available at http://localhost:8081. Any changes you make to the source code will be automatically reflected in the browser.
+
+## How it works
+
+The Docker setup uses:
+- A development-specific Dockerfile (`Dockerfile.dev`) that runs the Vite development server
+- Volume mounting in docker-compose.yml to sync your local files with the container
+- Vite's built-in hot module replacement (HMR)
+
 # Building For Production
 
 To build this application for production:

@@ -4,6 +4,7 @@ import BrowserServiceConfig from "../config/browser-service.config";
 
 export async function getStagehand() {
 
+
     const browserOptions: LocalBrowserLaunchOptions = {
         ...StagehandConfig.localBrowserLaunchOptions,
         cdpUrl: BrowserServiceConfig.getUrl(),

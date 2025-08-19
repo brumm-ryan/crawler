@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import type {AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate} from '../lib/types'
 
 export const Route = createFileRoute('/datasheet')({
   component: DatasheetPage,
@@ -9,48 +10,169 @@ function DatasheetPage() {
   const [datasheets, setDatasheets] = useState([
     {
       id: 1,
-      fullName: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '(555) 123-4567',
-      address: '123 Main St',
-      city: 'Anytown',
-      state: 'CA',
-      zipCode: '12345',
-      dateOfBirth: '1990-01-01',
+      firstName: 'John',
+      lastName: 'Doe',
+      middleName: '',
+      age: 33,
+      emails: [
+        { id: 1, address: 'john.doe@example.com', type: 'personal' }
+      ],
+      phones: [
+        { id: 1, number: '(555) 123-4567', type: 'mobile' }
+      ],
+      addresses: [
+        { id: 1, street: '123 Main St', city: 'Anytown', state: 'CA', zip_code: '12345' }
+      ],
     },
     {
       id: 2,
-      fullName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phone: '(555) 987-6543',
-      address: '456 Oak Ave',
-      city: 'Somewhere',
-      state: 'NY',
-      zipCode: '67890',
-      dateOfBirth: '1985-05-15',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      middleName: '',
+      age: 38,
+      emails: [
+        { id: 2, address: 'jane.smith@example.com', type: 'work' }
+      ],
+      phones: [
+        { id: 2, number: '(555) 987-6543', type: 'home' }
+      ],
+      addresses: [
+        { id: 2, street: '456 Oak Ave', city: 'Somewhere', state: 'NY', zip_code: '67890' }
+      ],
     },
   ])
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    dateOfBirth: '',
+  // Form data for the main datasheet
+  const [formData, setFormData] = useState<DatasheetCreate>({
+    addresses: [], emails: [], phones: [], user_id: 0,
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    age: 0
+  })
+
+  // Lists for multiple items
+  const [addresses, setAddresses] = useState<AddressCreate[]>([])
+  const [phones, setPhones] = useState<PhoneCreate[]>([])
+  const [emails, setEmails] = useState<EmailCreate[]>([])
+
+  // Current item being edited
+  const [currentAddress, setCurrentAddress] = useState<AddressCreate>({ 
+    street: '', city: '', state: '', zip_code: '' 
+  })
+  const [currentPhone, setCurrentPhone] = useState<PhoneCreate>({ 
+    number: '', type: '' 
+  })
+  const [currentEmail, setCurrentEmail] = useState<EmailCreate>({ 
+    address: '', type: '' 
   })
 
   const [showForm, setShowForm] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
+  // Handle changes to the main form data
   const handleChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target
     setFormData(prevData => ({
       ...prevData,
+      [name]: name === 'age' ? parseInt(value) || 0 : value
+    }))
+  }
+
+  // Handle changes to the current address being edited
+  const handleAddressChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target
+    setCurrentAddress(prev => ({
+      ...prev,
       [name]: value
     }))
+  }
+
+  // Handle changes to the current phone being edited
+  const handlePhoneChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target
+    setCurrentPhone(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  // Handle changes to the current email being edited
+  const handleEmailChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target
+    setCurrentEmail(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  // Add the current address to the list
+  const addAddress = () => {
+    if (currentAddress.street && currentAddress.city && currentAddress.state && currentAddress.zip_code) {
+      const updatedAddresses = [...addresses, { ...currentAddress }];
+      setAddresses(updatedAddresses);
+      setFormData(prevData => ({
+        ...prevData,
+        addresses: updatedAddresses
+      }));
+      setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
+    }
+  }
+
+  // Add the current phone to the list
+  const addPhone = () => {
+    if (currentPhone.number) {
+      const updatedPhones = [...phones, { ...currentPhone }];
+      setPhones(updatedPhones);
+      setFormData(prevData => ({
+        ...prevData,
+        phones: updatedPhones
+      }));
+      setCurrentPhone({ number: '', type: '' });
+    }
+  }
+
+  // Add the current email to the list
+  const addEmail = () => {
+    if (currentEmail.address) {
+      const updatedEmails = [...emails, { ...currentEmail }];
+      setEmails(updatedEmails);
+      setFormData(prevData => ({
+        ...prevData,
+        emails: updatedEmails
+      }));
+      setCurrentEmail({ address: '', type: '' });
+    }
+  }
+
+  // Remove an address from the list
+  const removeAddress = (index: number) => {
+    const updatedAddresses = addresses.filter((_, i) => i !== index);
+    setAddresses(updatedAddresses);
+    setFormData(prevData => ({
+      ...prevData,
+      addresses: updatedAddresses
+    }));
+  }
+
+  // Remove a phone from the list
+  const removePhone = (index: number) => {
+    const updatedPhones = phones.filter((_, i) => i !== index);
+    setPhones(updatedPhones);
+    setFormData(prevData => ({
+      ...prevData,
+      phones: updatedPhones
+    }));
+  }
+
+  // Remove an email from the list
+  const removeEmail = (index: number) => {
+    const updatedEmails = emails.filter((_, i) => i !== index);
+    setEmails(updatedEmails);
+    setFormData(prevData => ({
+      ...prevData,
+      emails: updatedEmails
+    }));
   }
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
@@ -62,22 +184,37 @@ function DatasheetPage() {
     // Add the new datasheet to the list
     const newDatasheet = {
       id: Date.now(), // Use timestamp as a simple unique ID
-      ...formData
+      ...formData,
+      middleName: formData.middleName || '',  // Ensure middleName is never undefined
+      addresses: formData.addresses.map((addr, index) => ({ id: Date.now() + index, ...addr })),
+      phones: formData.phones.map((phone, index) => ({ id: Date.now() + index + 100, type: phone.type || '', ...phone })),
+      emails: formData.emails.map((email, index) => ({ id: Date.now() + index + 200, type: email.type || '', ...email })),
     }
 
     setDatasheets([...datasheets, newDatasheet])
 
     // Reset the form
-    setFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      dateOfBirth: '',
-    })
+    const emptyFormData = {
+      addresses: [], 
+      emails: [], 
+      phones: [], 
+      user_id: 0,
+      firstName: '',
+      middleName: '',  // This will be initialized as empty string
+      lastName: '',
+      age: 0,
+    };
+
+    setFormData(emptyFormData);
+    // Keep these in sync with formData
+    setAddresses([]);
+    setPhones([]);
+    setEmails([]);
+
+    // Reset current editing items
+    setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
+    setCurrentPhone({ number: '', type: '' });
+    setCurrentEmail({ address: '', type: '' });
 
     setSubmitted(true)
     setShowForm(false) // Return to card view after submission
@@ -109,130 +246,374 @@ function DatasheetPage() {
             Please fill out the form below with your personal information. This information will be stored securely.
           </p>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Basic Information */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="John"
+                    required
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="john.doe@example.com"
-                  required
-                />
-              </div>
+                <div>
+                  <label htmlFor="middleName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Middle Name
+                  </label>
+                  <input
+                    type="text"
+                    id="middleName"
+                    name="middleName"
+                    value={formData.middleName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="A."
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="(555) 123-4567"
-                />
-              </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Doe"
+                    required
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+                    Age
+                  </label>
+                  <input
+                    type="number"
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    min="0"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address
-              </label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="123 Main St"
-              />
+            {/* Email Addresses */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Email Addresses</h3>
+                {emails.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {emails.length} {emails.length === 1 ? 'email' : 'emails'} added
+                  </span>
+                )}
+              </div>
+
+              {/* Add new email */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="md:col-span-2">
+                  <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="emailAddress"
+                    name="address"
+                    value={currentEmail.address}
+                    onChange={handleEmailChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="john.doe@example.com"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emailType" className="block text-sm font-medium text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <input
+                    type="text"
+                    id="emailType"
+                    name="type"
+                    value={currentEmail.type}
+                    onChange={handleEmailChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Personal, Work, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={addEmail}
+                  disabled={!currentEmail.address}
+                  className={`mb-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+                    currentEmail.address ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Email
+                </button>
+                {!currentEmail.address && (
+                  <span className="ml-3 text-sm text-gray-500">Enter an email address to add</span>
+                )}
+              </div>
+
+              {/* List of emails */}
+              {emails.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Added Emails:</h4>
+                  <ul className="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden">
+                    {emails.map((email, index) => (
+                      <li key={index} className="px-4 py-3 bg-white flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{email.address}</p>
+                          {email.type && <p className="text-sm text-gray-500">{email.type}</p>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeEmail(index)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  City
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Anytown"
-                />
+            {/* Phone Numbers */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Phone Numbers</h3>
+                {phones.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {phones.length} {phones.length === 1 ? 'phone' : 'phones'} added
+                  </span>
+                )}
               </div>
 
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                  State
-                </label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="CA"
-                />
+              {/* Add new phone */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="md:col-span-2">
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="number"
+                    value={currentPhone.number}
+                    onChange={handlePhoneChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phoneType" className="block text-sm font-medium text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <input
+                    type="text"
+                    id="phoneType"
+                    name="type"
+                    value={currentPhone.type}
+                    onChange={handlePhoneChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Mobile, Home, Work, etc."
+                  />
+                </div>
               </div>
 
-              <div>
-                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  ZIP Code
-                </label>
-                <input
-                  type="text"
-                  id="zipCode"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="12345"
-                />
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={addPhone}
+                  disabled={!currentPhone.number}
+                  className={`mb-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+                    currentPhone.number ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Phone
+                </button>
+                {!currentPhone.number && (
+                  <span className="ml-3 text-sm text-gray-500">Enter a phone number to add</span>
+                )}
               </div>
+
+              {/* List of phones */}
+              {phones.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Added Phone Numbers:</h4>
+                  <ul className="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden">
+                    {phones.map((phone, index) => (
+                      <li key={index} className="px-4 py-3 bg-white flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{phone.number}</p>
+                          {phone.type && <p className="text-sm text-gray-500">{phone.type}</p>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePhone(index)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Addresses */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Addresses</h3>
+                {addresses.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    {addresses.length} {addresses.length === 1 ? 'address' : 'addresses'} added
+                  </span>
+                )}
+              </div>
+
+              {/* Add new address */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="md:col-span-2">
+                  <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-1">
+                    Street Address
+                  </label>
+                  <input
+                    type="text"
+                    id="street"
+                    name="street"
+                    value={currentAddress.street}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="123 Main St"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={currentAddress.city}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Anytown"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    id="state"
+                    name="state"
+                    value={currentAddress.state}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="CA"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="zip_code" className="block text-sm font-medium text-gray-700 mb-1">
+                    ZIP Code
+                  </label>
+                  <input
+                    type="text"
+                    id="zip_code"
+                    name="zip_code"
+                    value={currentAddress.zip_code}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="12345"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={addAddress}
+                  disabled={!(currentAddress.street && currentAddress.city && currentAddress.state && currentAddress.zip_code)}
+                  className={`mb-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+                    (currentAddress.street && currentAddress.city && currentAddress.state && currentAddress.zip_code) 
+                      ? 'bg-blue-600 hover:bg-blue-700' 
+                      : 'bg-gray-400 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Address
+                </button>
+                {!(currentAddress.street && currentAddress.city && currentAddress.state && currentAddress.zip_code) && (
+                  <span className="ml-3 text-sm text-gray-500">All address fields are required</span>
+                )}
+              </div>
+
+              {/* List of addresses */}
+              {addresses.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Added Addresses:</h4>
+                  <ul className="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden">
+                    {addresses.map((address, index) => (
+                      <li key={index} className="px-4 py-3 bg-white flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{address.street}</p>
+                          <p className="text-sm text-gray-500">{address.city}, {address.state} {address.zip_code}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAddress(index)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div className="pt-4">
@@ -266,12 +647,50 @@ function DatasheetPage() {
             {/* Existing Datasheets */}
             {datasheets.map((datasheet) => (
               <div key={datasheet.id} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
-                <h3 className="font-semibold text-lg mb-2">{datasheet.fullName}</h3>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p><span className="font-medium">Email:</span> {datasheet.email}</p>
-                  <p><span className="font-medium">Phone:</span> {datasheet.phone}</p>
-                  <p><span className="font-medium">Address:</span> {datasheet.address}</p>
-                  <p><span className="font-medium">Location:</span> {datasheet.city}, {datasheet.state} {datasheet.zipCode}</p>
+                <h3 className="font-semibold text-lg mb-2">
+                  {datasheet.firstName} {datasheet.middleName ? datasheet.middleName + ' ' : ''}{datasheet.lastName}
+                </h3>
+                <div className="text-sm text-gray-600 space-y-2">
+                  <p><span className="font-medium">Age:</span> {datasheet.age}</p>
+
+                  {datasheet.emails && datasheet.emails.length > 0 && (
+                    <div>
+                      <p className="font-medium">Emails:</p>
+                      <ul className="pl-4 list-disc">
+                        {datasheet.emails.map((email, index) => (
+                          <li key={index}>
+                            {email.address} {email.type && <span className="text-gray-500">({email.type})</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {datasheet.phones && datasheet.phones.length > 0 && (
+                    <div>
+                      <p className="font-medium">Phones:</p>
+                      <ul className="pl-4 list-disc">
+                        {datasheet.phones.map((phone, index) => (
+                          <li key={index}>
+                            {phone.number} {phone.type && <span className="text-gray-500">({phone.type})</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {datasheet.addresses && datasheet.addresses.length > 0 && (
+                    <div>
+                      <p className="font-medium">Addresses:</p>
+                      <ul className="pl-4 list-disc">
+                        {datasheet.addresses.map((address, index) => (
+                          <li key={index}>
+                            {address.street}, {address.city}, {address.state} {address.zip_code}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
