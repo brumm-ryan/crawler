@@ -69,8 +69,8 @@ services:
 
   worker:
     build:
-      context: ./apps/stagehand-temporal
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/stagehand-temporal/Dockerfile
     container_name: stagehand-temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
@@ -99,16 +99,13 @@ services:
   crawl-ux:
     container_name: crawl-ux
     build:
-      context: ./apps/crawl-ux
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: ./apps/crawl-ux/Dockerfile
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - CRAWLER_API=crawl-api:8000
+      - CRAWLER_API=crawl-api:3000
     ports:
-      - "8081:3000"
-    volumes:
-      - ./apps/crawl-ux:/app
-      - /app/node_modules
+      - "8081:80"
     depends_on:
       - temporal
       - mysql
@@ -117,16 +114,17 @@ services:
 
   crawl-api:
     build:
-      context: ./apps/crawler-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/crawler-api/Dockerfile
     container_name: crawler-api
     restart: always
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
     ports:
-      - "8000:8000"
-    volumes:
-      - ./apps/crawler-api:/app
+      - "8000:3000"
+    depends_on:
+      - temporal
+      - mysql
     networks:
       - temporal-network
 

@@ -7,14 +7,22 @@ RUN corepack enable \
 
 WORKDIR /home/pwuser/app
 
-# copy only package metadata to leverage caching
-COPY package.json ./
+# Copy workspace configuration and package.json files for caching
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY packages/shared-contracts/package.json ./packages/shared-contracts/
+COPY apps/stagehand-temporal/package.json ./apps/stagehand-temporal/
 
-# install all deps (runs playwright postinstall hooks too)
-RUN pnpm install
-RUN pnpm playwright install --with-deps chromium
+# Copy shared-contracts source code
+COPY packages/shared-contracts/ ./packages/shared-contracts/
 
-# copy your code
-COPY . .
+# Copy stagehand-temporal source code
+COPY apps/stagehand-temporal/ ./apps/stagehand-temporal/
+
+# Install all dependencies (runs playwright postinstall hooks and builds shared-contracts via prepack)
+RUN pnpm install --frozen-lockfile
+RUN cd apps/stagehand-temporal && pnpm playwright install --with-deps chromium
+
+# Set working directory to the app
+WORKDIR /home/pwuser/app/apps/stagehand-temporal
 
 CMD ["pnpm", "start"]

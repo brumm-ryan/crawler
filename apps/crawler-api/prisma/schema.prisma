@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  name       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  datasheets Datasheet[]
+
+  @@map("users")
+}
+
+model Datasheet {
+  id         Int       @id @default(autoincrement())
+  firstName  String
+  middleName String?
+  lastName   String
+  age        Int
+  userId     Int?
+  user       User?     @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  addresses  Address[]
+  phones     Phone[]
+  emails     Email[]
+
+  @@map("datasheets")
+}
+
+model Address {
+  id          Int       @id @default(autoincrement())
+  street      String
+  city        String
+  state       String
+  zipCode     String    @map("zip_code")
+  datasheetId Int
+  datasheet   Datasheet @relation(fields: [datasheetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("addresses")
+}
+
+model Phone {
+  id          Int       @id @default(autoincrement())
+  number      String
+  type        String?
+  datasheetId Int
+  datasheet   Datasheet @relation(fields: [datasheetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("phones")
+}
+
+model Email {
+  id          Int       @id @default(autoincrement())
+  address     String
+  type        String?
+  datasheetId Int
+  datasheet   Datasheet @relation(fields: [datasheetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("emails")
+}
