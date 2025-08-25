@@ -20,6 +20,7 @@ This is a pnpm monorepo for a web crawling/data extraction platform with the fol
 
 ### Starting the Development Environment
 
+**Production Build:**
 ```bash
 # Start all services with Docker Compose
 docker-compose up
@@ -28,6 +29,20 @@ docker-compose up
 docker-compose up crawl-ux    # Frontend at http://localhost:8081
 docker-compose up crawl-api   # API at http://localhost:8000  
 docker-compose up worker      # Temporal worker
+```
+
+**Development with Hot Reloading:**
+```bash
+# Start development environment with hot reloading
+pnpm dev
+
+# Or using docker-compose directly:
+docker-compose -f docker-compose.dev.yml up --build
+
+# Other development commands:
+pnpm dev:down      # Stop development services
+pnpm dev:logs      # View logs from all services
+pnpm dev:rebuild   # Force rebuild and restart all services
 ```
 
 ### Individual Application Commands

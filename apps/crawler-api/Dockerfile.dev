@@ -1,0 +1,24 @@
+# Development Dockerfile for crawler-api with hot reloading
+FROM node:22-alpine
+
+# Enable corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /app
+
+# Copy workspace configuration and package.json files for caching
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY packages/shared-contracts/package.json ./packages/shared-contracts/
+COPY apps/crawler-api/package.json ./apps/crawler-api/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Expose port for NestJS dev server
+EXPOSE 3000
+
+# Set working directory to the app
+WORKDIR /app/apps/crawler-api
+
+# Generate Prisma client and start development server
+CMD ["sh", "-c", "pnpm prisma generate && pnpm start:dev"]

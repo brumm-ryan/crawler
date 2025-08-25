@@ -1,0 +1,22 @@
+# Development Dockerfile for stagehand-temporal with hot reloading
+FROM mcr.microsoft.com/playwright:v1.52.0-noble
+
+# Enable corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /app
+
+# Copy workspace configuration and package.json files for caching
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY packages/shared-contracts/package.json ./packages/shared-contracts/
+COPY apps/stagehand-temporal/package.json ./apps/stagehand-temporal/
+
+# Install dependencies and playwright browsers
+RUN pnpm install --frozen-lockfile
+RUN cd apps/stagehand-temporal && pnpm playwright install --with-deps chromium
+
+# Set working directory to the app
+WORKDIR /app/apps/stagehand-temporal
+
+# Start development worker with tsx for hot reloading
+CMD ["pnpm", "start"]

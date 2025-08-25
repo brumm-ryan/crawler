@@ -1,0 +1,174 @@
+version: "3.5"
+services:
+  mysql:
+    container_name: temporal-mysql
+    image: mysql:8.1.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - temporal-network
+
+  temporal:
+    container_name: temporal
+    image: temporalio/auto-setup:latest
+    depends_on:
+      - mysql
+    environment:
+      - DB=mysql8
+      - DB_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PWD=root
+      - MYSQL_SEEDS=mysql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "7233:7233"
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      - temporal-network
+
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    image: temporalio/admin-tools:latest
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+    networks:
+      - temporal-network
+
+  temporal-ui:
+    container_name: temporal-ui
+    image: temporalio/ui:latest
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - temporal-network
+
+  redis:
+    container_name: temporal-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - temporal-network
+
+  browserless:
+    image: ghcr.io/browserless/chromium
+    container_name: browserless
+    environment:
+      - CONCURRENT=10
+      - TOKEN=6R0W53R135510
+      - TIMEOUT=180000
+    ports:
+      - "3000:3000"
+    networks:
+      - temporal-network
+
+  # Development services with hot reloading
+  crawl-ux-dev:
+    container_name: crawl-ux-dev
+    build:
+      context: .
+      dockerfile: ./apps/crawl-ux/Dockerfile.dev
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - CRAWLER_API=crawl-api-dev:3000
+    ports:
+      - "8081:3000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./apps/crawl-ux:/app/apps/crawl-ux
+      - ./packages:/app/packages
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./package.json:/app/package.json
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Preserve node_modules
+      - crawl-ux-node-modules:/app/node_modules
+      - crawl-ux-app-node-modules:/app/apps/crawl-ux/node_modules
+    depends_on:
+      - temporal
+      - mysql
+    networks:
+      - temporal-network
+
+  crawl-api-dev:
+    container_name: crawl-api-dev
+    build:
+      context: .
+      dockerfile: ./apps/crawler-api/Dockerfile.dev
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    ports:
+      - "8000:3000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./apps/crawler-api:/app/apps/crawler-api
+      - ./packages:/app/packages
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./package.json:/app/package.json
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Preserve node_modules
+      - crawl-api-node-modules:/app/node_modules
+      - crawl-api-app-node-modules:/app/apps/crawler-api/node_modules
+    depends_on:
+      - temporal
+      - mysql
+    networks:
+      - temporal-network
+
+  worker-dev:
+    container_name: stagehand-temporal-dev
+    build:
+      context: .
+      dockerfile: ./apps/stagehand-temporal/Dockerfile.dev
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - REDIS_HOST=redis
+      - BROWSERLESS=browserless:3000
+    volumes:
+      # Mount source code for hot reloading
+      - ./apps/stagehand-temporal:/app/apps/stagehand-temporal
+      - ./packages:/app/packages
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./package.json:/app/package.json
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # Preserve node_modules
+      - worker-node-modules:/app/node_modules
+      - worker-app-node-modules:/app/apps/stagehand-temporal/node_modules
+    depends_on:
+      - temporal
+      - mysql
+      - redis
+      - browserless
+    networks:
+      - temporal-network
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+
+volumes:
+  redis-data:
+  mysql-data:
+  crawl-ux-node-modules:
+  crawl-ux-app-node-modules:
+  crawl-api-node-modules:
+  crawl-api-app-node-modules:
+  worker-node-modules:
+  worker-app-node-modules:
