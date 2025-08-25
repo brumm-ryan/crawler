@@ -1,0 +1,88 @@
+name: Crawler API CI
+
+on:
+  push:
+    paths:
+      - 'apps/crawler-api/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    paths:
+      - 'apps/crawler-api/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: crawler_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared contracts
+        run: pnpm --filter @crawl-monorepo/shared-contracts build
+
+      - name: Generate Prisma client
+        run: pnpm --filter crawler-api exec prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/crawler_test
+
+      - name: Run Prisma migrations
+        run: pnpm --filter crawler-api exec prisma migrate dev --name init
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/crawler_test
+
+      - name: Lint
+        run: pnpm --filter crawler-api lint
+
+      - name: Run tests
+        run: pnpm --filter crawler-api test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/crawler_test
+
+      - name: Run E2E tests
+        run: pnpm --filter crawler-api test:e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/crawler_test
+
+      - name: Build
+        run: pnpm --filter crawler-api build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-api-build
+          path: apps/crawler-api/dist/
+          retention-days: 7

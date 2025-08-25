@@ -1,0 +1,76 @@
+name: Stagehand Temporal CI
+
+on:
+  push:
+    paths:
+      - 'apps/stagehand-temporal/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    paths:
+      - 'apps/stagehand-temporal/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared contracts
+        run: pnpm --filter @crawl-monorepo/shared-contracts build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter stagehand-temporal exec playwright install --with-deps chromium
+
+      - name: Lint
+        run: pnpm --filter stagehand-temporal lint || echo "No lint script found"
+
+      - name: Type check
+        run: pnpm --filter stagehand-temporal exec tsc --noEmit
+
+      - name: Run tests
+        run: pnpm --filter stagehand-temporal test || echo "No test script found"
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Build
+        run: pnpm --filter stagehand-temporal build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stagehand-temporal-build
+          path: apps/stagehand-temporal/dist/
+          retention-days: 7

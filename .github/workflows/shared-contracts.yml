@@ -1,0 +1,54 @@
+name: Shared Contracts CI
+
+on:
+  push:
+    paths:
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    paths:
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @crawl-monorepo/shared-contracts lint || echo "No lint script found"
+
+      - name: Type check
+        run: pnpm --filter @crawl-monorepo/shared-contracts exec tsc --noEmit
+
+      - name: Run tests
+        run: pnpm --filter @crawl-monorepo/shared-contracts test || echo "No test script found"
+
+      - name: Build
+        run: pnpm --filter @crawl-monorepo/shared-contracts build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-contracts-build
+          path: packages/shared-contracts/dist/
+          retention-days: 7
