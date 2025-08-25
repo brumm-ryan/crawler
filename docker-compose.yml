@@ -115,39 +115,13 @@ services:
     networks:
       - temporal-network
 
-  app-mysql:
-    image: mysql:8.0
-    container_name: crawler-api-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: crawler
-      MYSQL_USER: crawler_user
-      MYSQL_PASSWORD: crawler_password
-    ports:
-      - "3307:3307"
-    command: --port=3307
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - temporal-network
-
   crawl-api:
     build:
       context: ./apps/crawler-api
       dockerfile: Dockerfile
     container_name: crawler-api
     restart: always
-    depends_on:
-      app-mysql:
-        condition: service_healthy
     environment:
-      - DATABASE_URL=mysql+pymysql://root:rootpassword@app-mysql:3307/crawler
       - TEMPORAL_ADDRESS=temporal:7233
     ports:
       - "8000:8000"
@@ -163,4 +137,3 @@ networks:
 
 volumes:
   redis-data:
-  mysql_data:
