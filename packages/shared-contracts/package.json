@@ -1,0 +1,32 @@
+{
+  "name": "@crawl-monorepo/shared-contracts",
+  "version": "1.0.0",
+  "description": "Shared API contracts and models for the crawl monorepo",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepack": "pnpm build"
+  },
+  "keywords": [
+    "contracts",
+    "models",
+    "types",
+    "shared"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}

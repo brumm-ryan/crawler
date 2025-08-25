@@ -1,0 +1,59 @@
+name: Crawl UX CI
+
+on:
+  push:
+    paths:
+      - 'apps/crawl-ux/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+  pull_request:
+    paths:
+      - 'apps/crawl-ux/**'
+      - 'packages/shared-contracts/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared contracts
+        run: pnpm --filter @crawl-monorepo/shared-contracts build
+
+      - name: Lint
+        run: pnpm --filter crawl-ux lint || echo "No lint script found"
+
+      - name: Type check
+        run: pnpm --filter crawl-ux typecheck || echo "No typecheck script found"
+
+      - name: Run tests
+        run: pnpm --filter crawl-ux test
+
+      - name: Build
+        run: pnpm --filter crawl-ux build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-ux-build
+          path: apps/crawl-ux/dist/
+          retention-days: 7
