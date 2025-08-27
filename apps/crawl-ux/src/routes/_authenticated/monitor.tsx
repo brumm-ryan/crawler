@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 
-export const Route = createFileRoute('/monitor')({
+export const Route = createFileRoute('/_authenticated/monitor')({
   component: MonitorPage,
 })
 

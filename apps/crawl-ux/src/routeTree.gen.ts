@@ -11,35 +11,25 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as MonitorImport } from './routes/monitor'
-import { Route as DatasheetImport } from './routes/datasheet'
-import { Route as ContactImport } from './routes/contact'
-import { Route as AboutImport } from './routes/about'
+import { Route as PublicImport } from './routes/_public'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
+import { Route as PublicLoginImport } from './routes/_public.login'
+import { Route as AuthenticatedMonitorImport } from './routes/_authenticated/monitor'
+import { Route as AuthenticatedDatasheetImport } from './routes/_authenticated/datasheet'
+import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedContactImport } from './routes/_authenticated/contact'
+import { Route as AuthenticatedAboutImport } from './routes/_authenticated/about'
 
 // Create/Update Routes
 
-const MonitorRoute = MonitorImport.update({
-  id: '/monitor',
-  path: '/monitor',
+const PublicRoute = PublicImport.update({
+  id: '/_public',
   getParentRoute: () => rootRoute,
 } as any)
 
-const DatasheetRoute = DatasheetImport.update({
-  id: '/datasheet',
-  path: '/datasheet',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const ContactRoute = ContactImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -47,6 +37,42 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const PublicLoginRoute = PublicLoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PublicRoute,
+} as any)
+
+const AuthenticatedMonitorRoute = AuthenticatedMonitorImport.update({
+  id: '/monitor',
+  path: '/monitor',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedDatasheetRoute = AuthenticatedDatasheetImport.update({
+  id: '/datasheet',
+  path: '/datasheet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedDashboardRoute = AuthenticatedDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedContactRoute = AuthenticatedContactImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedAboutRoute = AuthenticatedAboutImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -60,87 +86,178 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PublicImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authenticated/about': {
+      id: '/_authenticated/about'
       path: '/about'
       fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedAboutImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/contact': {
-      id: '/contact'
+    '/_authenticated/contact': {
+      id: '/_authenticated/contact'
       path: '/contact'
       fullPath: '/contact'
-      preLoaderRoute: typeof ContactImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedContactImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/datasheet': {
-      id: '/datasheet'
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/datasheet': {
+      id: '/_authenticated/datasheet'
       path: '/datasheet'
       fullPath: '/datasheet'
-      preLoaderRoute: typeof DatasheetImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedDatasheetImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/monitor': {
-      id: '/monitor'
+    '/_authenticated/monitor': {
+      id: '/_authenticated/monitor'
       path: '/monitor'
       fullPath: '/monitor'
-      preLoaderRoute: typeof MonitorImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedMonitorImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_public/login': {
+      id: '/_public/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof PublicLoginImport
+      parentRoute: typeof PublicImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedContactRoute: typeof AuthenticatedContactRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDatasheetRoute: typeof AuthenticatedDatasheetRoute
+  AuthenticatedMonitorRoute: typeof AuthenticatedMonitorRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedContactRoute: AuthenticatedContactRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDatasheetRoute: AuthenticatedDatasheetRoute,
+  AuthenticatedMonitorRoute: AuthenticatedMonitorRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+interface PublicRouteChildren {
+  PublicLoginRoute: typeof PublicLoginRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicLoginRoute: PublicLoginRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/contact': typeof ContactRoute
-  '/datasheet': typeof DatasheetRoute
-  '/monitor': typeof MonitorRoute
+  '': typeof PublicRouteWithChildren
+  '/about': typeof AuthenticatedAboutRoute
+  '/contact': typeof AuthenticatedContactRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/datasheet': typeof AuthenticatedDatasheetRoute
+  '/monitor': typeof AuthenticatedMonitorRoute
+  '/login': typeof PublicLoginRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/contact': typeof ContactRoute
-  '/datasheet': typeof DatasheetRoute
-  '/monitor': typeof MonitorRoute
+  '': typeof PublicRouteWithChildren
+  '/about': typeof AuthenticatedAboutRoute
+  '/contact': typeof AuthenticatedContactRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/datasheet': typeof AuthenticatedDatasheetRoute
+  '/monitor': typeof AuthenticatedMonitorRoute
+  '/login': typeof PublicLoginRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/contact': typeof ContactRoute
-  '/datasheet': typeof DatasheetRoute
-  '/monitor': typeof MonitorRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_public': typeof PublicRouteWithChildren
+  '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/contact': typeof AuthenticatedContactRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/datasheet': typeof AuthenticatedDatasheetRoute
+  '/_authenticated/monitor': typeof AuthenticatedMonitorRoute
+  '/_public/login': typeof PublicLoginRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/contact' | '/datasheet' | '/monitor'
+  fullPaths:
+    | '/'
+    | ''
+    | '/about'
+    | '/contact'
+    | '/dashboard'
+    | '/datasheet'
+    | '/monitor'
+    | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/contact' | '/datasheet' | '/monitor'
-  id: '__root__' | '/' | '/about' | '/contact' | '/datasheet' | '/monitor'
+  to:
+    | '/'
+    | ''
+    | '/about'
+    | '/contact'
+    | '/dashboard'
+    | '/datasheet'
+    | '/monitor'
+    | '/login'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/_public'
+    | '/_authenticated/about'
+    | '/_authenticated/contact'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/datasheet'
+    | '/_authenticated/monitor'
+    | '/_public/login'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  ContactRoute: typeof ContactRoute
-  DatasheetRoute: typeof DatasheetRoute
-  MonitorRoute: typeof MonitorRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  PublicRoute: typeof PublicRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  ContactRoute: ContactRoute,
-  DatasheetRoute: DatasheetRoute,
-  MonitorRoute: MonitorRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  PublicRoute: PublicRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -154,26 +271,52 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
-        "/contact",
-        "/datasheet",
-        "/monitor"
+        "/_authenticated",
+        "/_public"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
+      "children": [
+        "/_authenticated/about",
+        "/_authenticated/contact",
+        "/_authenticated/dashboard",
+        "/_authenticated/datasheet",
+        "/_authenticated/monitor"
+      ]
     },
-    "/contact": {
-      "filePath": "contact.tsx"
+    "/_public": {
+      "filePath": "_public.tsx",
+      "children": [
+        "/_public/login"
+      ]
     },
-    "/datasheet": {
-      "filePath": "datasheet.tsx"
+    "/_authenticated/about": {
+      "filePath": "_authenticated/about.tsx",
+      "parent": "/_authenticated"
     },
-    "/monitor": {
-      "filePath": "monitor.tsx"
+    "/_authenticated/contact": {
+      "filePath": "_authenticated/contact.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/dashboard": {
+      "filePath": "_authenticated/dashboard.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/datasheet": {
+      "filePath": "_authenticated/datasheet.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/monitor": {
+      "filePath": "_authenticated/monitor.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_public/login": {
+      "filePath": "_public.login.tsx",
+      "parent": "/_public"
     }
   }
 }

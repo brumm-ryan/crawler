@@ -5,11 +5,11 @@ export default function Sidebar() {
     <aside className="w-64 h-screen bg-gray-100 text-gray-800 fixed left-0 top-[3.5rem] p-4 shadow-sm">
       <nav className="flex flex-col space-y-4">
         <Link
-          to="/" 
+          to="/dashboard"
           className="px-4 py-2 rounded hover:bg-gray-200 transition-colors"
           activeProps={{ className: 'bg-gray-200 font-bold' }}
         >
-          Home
+          Dashboard
         </Link>
         <Link
             to="/datasheet"

@@ -1,6 +1,11 @@
 import { Link } from '@tanstack/react-router'
+import { useAuth } from '@workos-inc/authkit-react'
 
 export default function Header() {
+  const { user, signIn, signOut } = useAuth()
+
+  console.log(user);
+
   return (
     <header className="px-4 py-3 flex items-center bg-white text-black justify-between shadow-md fixed top-0 left-0 right-0 z-10">
       <nav className="flex flex-row items-center">
@@ -25,7 +30,44 @@ export default function Header() {
           </svg>
         </Link>
       </nav>
+      
       <div className="text-lg font-semibold">Crawl UX</div>
+
+      <div className="flex items-center gap-4">
+        {user ? (
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {user?.profilePictureUrl ? (
+                <img
+                  src={user.profilePictureUrl}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                  {user?.firstName?.charAt(0) || user?.email?.charAt(0) || '?'}
+                </div>
+              )}
+              <span className="text-sm font-medium">
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email}
+              </span>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => signIn()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Sign In
+          </button>
+        )}
+      </div>
     </header>
   )
 }

@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import type {AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate} from '../lib/types'
+import type {AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate} from '@/lib/types.ts'
 
-export const Route = createFileRoute('/datasheet')({
+export const Route = createFileRoute('/_authenticated/datasheet')({
   component: DatasheetPage,
 })
 
