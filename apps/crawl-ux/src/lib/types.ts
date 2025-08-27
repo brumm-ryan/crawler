@@ -41,7 +41,7 @@ export interface DatasheetCreate {
   middleName?: string;
   lastName: string;
   age: number;
-  user_id?: number;
+  userId?: number;
   addresses: AddressCreate[];
   phones: PhoneCreate[];
   emails: EmailCreate[];

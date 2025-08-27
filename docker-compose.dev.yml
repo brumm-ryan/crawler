@@ -87,7 +87,7 @@ services:
       dockerfile: ./apps/crawl-ux/Dockerfile.dev
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - CRAWLER_API=crawl-api-dev:3000
+      - VITE_CRAWLER_API=http://localhost:8000
     ports:
       - "8081:3000"
     volumes:
@@ -101,6 +101,7 @@ services:
       - crawl-ux-node-modules:/app/node_modules
       - crawl-ux-app-node-modules:/app/apps/crawl-ux/node_modules
     depends_on:
+      - crawl-api-dev
       - temporal
       - mysql
     networks:

@@ -9,21 +9,36 @@ import {
   HttpException,
   HttpStatus,
   ParseIntPipe,
+  Logger,
 } from '@nestjs/common';
 import { DatasheetService } from './datasheet.service';
 import type { DatasheetCreate, DatasheetRead } from '@crawl-monorepo/shared-contracts';
 
 @Controller('datasheets')
 export class DatasheetController {
+  private readonly logger = new Logger(DatasheetController.name);
+
   constructor(private readonly datasheetService: DatasheetService) {}
 
   @Post()
   async create(@Body() createDatasheetDto: DatasheetCreate): Promise<DatasheetRead> {
+    this.logger.log(`Creating new datasheet for: ${createDatasheetDto.firstName} ${createDatasheetDto.lastName}`);
+    this.logger.debug(`Create datasheet payload:`, JSON.stringify(createDatasheetDto, null, 2));
+    
     try {
-      return await this.datasheetService.create(createDatasheetDto);
+      const result = await this.datasheetService.create(createDatasheetDto);
+      this.logger.log(`Successfully created datasheet with ID: ${result.id}`);
+      return result;
     } catch (error) {
+      this.logger.error(`Failed to create datasheet for ${createDatasheetDto.firstName} ${createDatasheetDto.lastName}`, error.stack);
+      this.logger.error(`Error details:`, error);
+      
       throw new HttpException(
-        'Failed to create datasheet',
+        {
+          message: 'Failed to create datasheet',
+          error: error.message,
+          details: error.stack,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

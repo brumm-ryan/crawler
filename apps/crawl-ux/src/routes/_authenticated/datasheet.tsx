@@ -1,50 +1,39 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import type {AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate} from '@/lib/types.ts'
+import { useState, useEffect } from 'react'
+import type { AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate, DatasheetRead } from '@/lib/types.ts'
+import { datasheetApi, ApiError } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/datasheet')({
   component: DatasheetPage,
 })
 
 function DatasheetPage() {
-  const [datasheets, setDatasheets] = useState([
-    {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      middleName: '',
-      age: 33,
-      emails: [
-        { id: 1, address: 'john.doe@example.com', type: 'personal' }
-      ],
-      phones: [
-        { id: 1, number: '(555) 123-4567', type: 'mobile' }
-      ],
-      addresses: [
-        { id: 1, street: '123 Main St', city: 'Anytown', state: 'CA', zip_code: '12345' }
-      ],
-    },
-    {
-      id: 2,
-      firstName: 'Jane',
-      lastName: 'Smith',
-      middleName: '',
-      age: 38,
-      emails: [
-        { id: 2, address: 'jane.smith@example.com', type: 'work' }
-      ],
-      phones: [
-        { id: 2, number: '(555) 987-6543', type: 'home' }
-      ],
-      addresses: [
-        { id: 2, street: '456 Oak Ave', city: 'Somewhere', state: 'NY', zip_code: '67890' }
-      ],
-    },
-  ])
+  const [datasheets, setDatasheets] = useState<DatasheetRead[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load datasheets from API on component mount
+  useEffect(() => {
+    loadDatasheets()
+  }, [])
+
+  const loadDatasheets = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await datasheetApi.getAll()
+      setDatasheets(data)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load datasheets')
+      console.error('Error loading datasheets:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Form data for the main datasheet
   const [formData, setFormData] = useState<DatasheetCreate>({
-    addresses: [], emails: [], phones: [], user_id: 0,
+    addresses: [], emails: [], phones: [], userId: 0,
     firstName: '',
     middleName: '',
     lastName: '',
@@ -69,6 +58,7 @@ function DatasheetPage() {
 
   const [showForm, setShowForm] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set())
 
   // Handle changes to the main form data
   const handleChange = (e: { target: { name: any; value: any } }) => {
@@ -175,61 +165,107 @@ function DatasheetPage() {
     }));
   }
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    // In a real application, you would handle the form submission here
-    // For example, sending the data to a server
-    console.log('Form submitted:', formData)
+    
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Create the datasheet via API
+      const newDatasheet = await datasheetApi.create(formData)
+      
+      // Add the new datasheet to the local state
+      setDatasheets(prev => [...prev, newDatasheet])
 
-    // Add the new datasheet to the list
-    const newDatasheet = {
-      id: Date.now(), // Use timestamp as a simple unique ID
-      ...formData,
-      middleName: formData.middleName || '',  // Ensure middleName is never undefined
-      addresses: formData.addresses.map((addr, index) => ({ id: Date.now() + index, ...addr })),
-      phones: formData.phones.map((phone, index) => ({ id: Date.now() + index + 100, type: phone.type || '', ...phone })),
-      emails: formData.emails.map((email, index) => ({ id: Date.now() + index + 200, type: email.type || '', ...email })),
+      // Reset the form
+      const emptyFormData = {
+        addresses: [], 
+        emails: [], 
+        phones: [], 
+        userId: 0,
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        age: 0,
+      };
+
+      setFormData(emptyFormData);
+      setAddresses([]);
+      setPhones([]);
+      setEmails([]);
+
+      // Reset current editing items
+      setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
+      setCurrentPhone({ number: '', type: '' });
+      setCurrentEmail({ address: '', type: '' });
+
+      setSubmitted(true)
+      setShowForm(false) // Return to card view after submission
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to create datasheet')
+      console.error('Error creating datasheet:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this datasheet?')) {
+      return
     }
 
-    setDatasheets([...datasheets, newDatasheet])
-
-    // Reset the form
-    const emptyFormData = {
-      addresses: [], 
-      emails: [], 
-      phones: [], 
-      user_id: 0,
-      firstName: '',
-      middleName: '',  // This will be initialized as empty string
-      lastName: '',
-      age: 0,
-    };
-
-    setFormData(emptyFormData);
-    // Keep these in sync with formData
-    setAddresses([]);
-    setPhones([]);
-    setEmails([]);
-
-    // Reset current editing items
-    setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
-    setCurrentPhone({ number: '', type: '' });
-    setCurrentEmail({ address: '', type: '' });
-
-    setSubmitted(true)
-    setShowForm(false) // Return to card view after submission
+    try {
+      setDeletingIds(prev => new Set(prev).add(id))
+      await datasheetApi.delete(id)
+      setDatasheets(prev => prev.filter(ds => ds.id !== id))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to delete datasheet')
+      console.error('Error deleting datasheet:', err)
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(id)
+        return newSet
+      })
+    }
   }
 
   return (
     <div className="w-full">
       <h1 className="text-3xl font-bold mb-6">Personal Information Datasheet</h1>
 
-      {submitted ? (
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <p className="font-bold">Error!</p>
+          <p>{error}</p>
+          <button
+            onClick={loadDatasheets}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* Success Message */}
+      {submitted && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
           <p className="font-bold">Success!</p>
           <p>Your personal information datasheet has been created.</p>
         </div>
-      ) : null}
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6">
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      )}
 
       {showForm ? (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -619,9 +655,21 @@ function DatasheetPage() {
             <div className="pt-4">
               <button
                 type="submit"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={loading}
+                className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                  loading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                }`}
               >
-                Create Datasheet
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating...
+                  </>
+                ) : (
+                  'Create Datasheet'
+                )}
               </button>
             </div>
           </form>
@@ -646,8 +694,24 @@ function DatasheetPage() {
 
             {/* Existing Datasheets */}
             {datasheets.map((datasheet) => (
-              <div key={datasheet.id} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
-                <h3 className="font-semibold text-lg mb-2">
+              <div key={datasheet.id} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow relative">
+                {/* Delete Button */}
+                <button
+                  onClick={() => handleDelete(datasheet.id)}
+                  disabled={deletingIds.has(datasheet.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 disabled:opacity-50"
+                  title="Delete datasheet"
+                >
+                  {deletingIds.has(datasheet.id) ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </button>
+
+                <h3 className="font-semibold text-lg mb-2 pr-8">
                   {datasheet.firstName} {datasheet.middleName ? datasheet.middleName + ' ' : ''}{datasheet.lastName}
                 </h3>
                 <div className="text-sm text-gray-600 space-y-2">
