@@ -1,5 +1,5 @@
 import {createFileRoute, Outlet, useNavigate} from '@tanstack/react-router'
-import {useAuth} from "@workos-inc/authkit-react";
+import {useAuth} from '../lib/auth';
 import Header from '../components/Header'
 import Sidebar from '../components/Sidebar'
 
@@ -9,10 +9,18 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
 
-  const { user } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate()
 
-  if (!user) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
     navigate({to: '/login'})
     return null
   }

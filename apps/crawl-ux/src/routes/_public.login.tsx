@@ -1,5 +1,5 @@
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
-import { useAuth } from '@workos-inc/authkit-react'
+import { useAuth } from '../lib/auth'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/_public/login')({
@@ -7,17 +7,25 @@ export const Route = createFileRoute('/_public/login')({
 })
 
 function LoginPage() {
-  const { user, signIn } = useAuth()
+  const { user, login, isLoading, isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
   // If user is already authenticated, redirect to home
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated && user) {
       navigate({to: '/dashboard'})
     }
-  }, [user])
+  }, [isAuthenticated, user, navigate])
 
-  if (user) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (isAuthenticated && user) {
     return null // Don't render anything while redirecting
   }
 
@@ -103,11 +111,11 @@ function LoginPage() {
             {/* Login Card */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
               <button
-                onClick={() => signIn({ state: { returnTo: location.pathname } })}
+                onClick={() => login(window.location.origin + '/dashboard')}
                 className="group w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
               >
                 <svg className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z" clipRule="evenodd" />
                 </svg>
                 Sign in with WorkOS
                 <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">

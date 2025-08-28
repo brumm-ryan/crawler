@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { DatasheetModule } from './datasheets/datasheet.module';
 import { TemporalModule } from './temporal/temporal.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { TemporalModule } from './temporal/temporal.module';
       isGlobal: true,
     }),
     PrismaModule,
+    AuthModule,
     TemporalModule,
     DatasheetModule,
   ],

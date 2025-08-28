@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@workos-inc/authkit-react'
+import { useAuth } from '../lib/auth'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/')({
@@ -7,16 +7,24 @@ export const Route = createFileRoute('/')({
 })
 
 function HomePage() {
-  const { user } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated && user) {
       navigate({ to: '/dashboard' })
     }
-  }, [user, navigate])
+  }, [isAuthenticated, user, navigate])
 
-  if (user) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (isAuthenticated && user) {
     return null // Don't render anything while redirecting
   }
 

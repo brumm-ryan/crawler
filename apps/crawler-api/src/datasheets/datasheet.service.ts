@@ -49,6 +49,21 @@ export class DatasheetService {
     return datasheets.map(this.mapToDatasheetRead);
   }
 
+  async findAllForUser(userId: number): Promise<DatasheetRead[]> {
+    const datasheets = await this.prisma.datasheet.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        addresses: true,
+        phones: true,
+        emails: true,
+      },
+    });
+
+    return datasheets.map(this.mapToDatasheetRead);
+  }
+
   async findOne(id: number): Promise<DatasheetRead | null> {
     const datasheet = await this.prisma.datasheet.findUnique({
       where: { id },

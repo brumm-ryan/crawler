@@ -11,9 +11,6 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/shared-contracts/package.json ./packages/shared-contracts/
 COPY apps/crawler-api/package.json ./apps/crawler-api/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
 # Expose port for NestJS dev server
 EXPOSE 3000
 
@@ -21,4 +18,4 @@ EXPOSE 3000
 WORKDIR /app/apps/crawler-api
 
 # Generate Prisma client and start development server
-CMD ["sh", "-c", "pnpm prisma generate && pnpm start:dev"]
+CMD ["sh", "-c", "pnpm install --frozen-lockfile --filter crawler-api && pnpm prisma generate && pnpm start:dev"]

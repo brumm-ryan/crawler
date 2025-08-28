@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useAuth } from '@workos-inc/authkit-react'
+import { useAuth } from '../../lib/auth'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardPage,

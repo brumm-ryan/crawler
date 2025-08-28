@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Enable cookie parser for handling authentication cookies
+  app.use(cookieParser());
   
   // Enable CORS for frontend communication
   app.enableCors({
@@ -10,11 +14,11 @@ async function bootstrap() {
       'http://localhost:3000', // Frontend dev server
       'http://localhost:8081', // Frontend dev server alternate port
       'http://localhost:5173', // Vite default port
-      process.env.FRONTEND_URL || 'http://localhost:3000'
+      process.env.FRONTEND_URL || 'http://localhost:8081'
     ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true,
+    credentials: true, // Important for cookies
   });
 
   await app.listen(process.env.PORT ?? 3000);

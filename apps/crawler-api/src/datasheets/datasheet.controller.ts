@@ -10,27 +10,42 @@ import {
   HttpStatus,
   ParseIntPipe,
   Logger,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { DatasheetService } from './datasheet.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuthUser } from '../auth/auth.service';
 import type { DatasheetCreate, DatasheetRead } from '@crawl-monorepo/shared-contracts';
 
 @Controller('datasheets')
+@UseGuards(JwtAuthGuard)
 export class DatasheetController {
   private readonly logger = new Logger(DatasheetController.name);
 
   constructor(private readonly datasheetService: DatasheetService) {}
 
   @Post()
-  async create(@Body() createDatasheetDto: DatasheetCreate): Promise<DatasheetRead> {
-    this.logger.log(`Creating new datasheet for: ${createDatasheetDto.firstName} ${createDatasheetDto.lastName}`);
+  async create(
+    @Body() createDatasheetDto: DatasheetCreate,
+    @Req() req: Request & { user: AuthUser }
+  ): Promise<DatasheetRead> {
+    this.logger.log(`Creating new datasheet for: ${createDatasheetDto.firstName} ${createDatasheetDto.lastName} (User: ${req.user.email})`);
     this.logger.debug(`Create datasheet payload:`, JSON.stringify(createDatasheetDto, null, 2));
     
     try {
-      const result = await this.datasheetService.create(createDatasheetDto);
-      this.logger.log(`Successfully created datasheet with ID: ${result.id}`);
+      // Associate the datasheet with the authenticated user
+      const datasheetWithUser = {
+        ...createDatasheetDto,
+        userId: req.user.id,
+      };
+
+      const result = await this.datasheetService.create(datasheetWithUser);
+      this.logger.log(`Successfully created datasheet with ID: ${result.id} for user: ${req.user.email}`);
       return result;
     } catch (error) {
-      this.logger.error(`Failed to create datasheet for ${createDatasheetDto.firstName} ${createDatasheetDto.lastName}`, error.stack);
+      this.logger.error(`Failed to create datasheet for ${createDatasheetDto.firstName} ${createDatasheetDto.lastName} (User: ${req.user.email})`, error.stack);
       this.logger.error(`Error details:`, error);
       
       throw new HttpException(
@@ -45,12 +60,23 @@ export class DatasheetController {
   }
 
   @Get()
-  async findAll(): Promise<DatasheetRead[]> {
+  async findAll(@Req() req: Request & { user: AuthUser }): Promise<DatasheetRead[]> {
+    this.logger.log(`Fetching datasheets for user: ${req.user.email}`);
+    
     try {
-      return await this.datasheetService.findAll();
+      const result = await this.datasheetService.findAllForUser(req.user.id);
+      this.logger.log(`Successfully fetched ${result.length} datasheets for user: ${req.user.email}`);
+      return result;
     } catch (error) {
+      this.logger.error(`Failed to fetch datasheets for user: ${req.user.email}`, error.stack);
+      this.logger.error(`Error details:`, error);
+      
       throw new HttpException(
-        'Failed to fetch datasheets',
+        {
+          message: 'Failed to fetch datasheets',
+          error: error.message,
+          details: error.stack,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
