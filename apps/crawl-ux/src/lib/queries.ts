@@ -83,5 +83,3 @@ export function useDeleteDatasheet() {
     },
   })
 }
-
-// Note: Auth hooks removed - using manual state management in AuthProvider
