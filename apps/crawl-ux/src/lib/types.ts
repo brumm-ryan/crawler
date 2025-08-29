@@ -50,3 +50,19 @@ export interface DatasheetCreate {
 export interface DatasheetRead extends DatasheetCreate {
   id: number;
 }
+
+// Scan types
+export interface ScanCreate {
+  datasheetId: number;
+  externalId?: string;
+}
+
+export interface ScanRead {
+  id: number;
+  externalId?: string;
+  status: string;
+  userId: number;
+  datasheetId: number;
+  createdAt: string;
+  updatedAt: string;
+}

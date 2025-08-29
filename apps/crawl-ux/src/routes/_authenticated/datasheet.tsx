@@ -1,35 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
-import type { AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate, DatasheetRead } from '@/lib/types.ts'
-import { datasheetApi, ApiError } from '@/lib/api'
+import { useState } from 'react'
+import type { AddressCreate, EmailCreate, PhoneCreate, DatasheetCreate } from '@/lib/types.ts'
+import { useDatasheets, useCreateDatasheet, useDeleteDatasheet } from '../../lib/queries'
 
 export const Route = createFileRoute('/_authenticated/datasheet')({
   component: DatasheetPage,
 })
 
 function DatasheetPage() {
-  const [datasheets, setDatasheets] = useState<DatasheetRead[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Load datasheets from API on component mount
-  useEffect(() => {
-    loadDatasheets()
-  }, [])
-
-  const loadDatasheets = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const data = await datasheetApi.getAll()
-      setDatasheets(data)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to load datasheets')
-      console.error('Error loading datasheets:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { 
+    data: datasheets = [], 
+    isLoading: loading, 
+    error,
+    refetch: loadDatasheets
+  } = useDatasheets()
+  
+  const createDatasheetMutation = useCreateDatasheet()
+  const deleteDatasheetMutation = useDeleteDatasheet()
 
   // Form data for the main datasheet
   const [formData, setFormData] = useState<DatasheetCreate>({
@@ -168,46 +155,34 @@ function DatasheetPage() {
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     
-    try {
-      setLoading(true)
-      setError(null)
-      
-      // Create the datasheet via API
-      const newDatasheet = await datasheetApi.create(formData)
-      
-      // Add the new datasheet to the local state
-      setDatasheets(prev => [...prev, newDatasheet])
+    createDatasheetMutation.mutate(formData, {
+      onSuccess: () => {
+        // Reset the form
+        const emptyFormData = {
+          addresses: [], 
+          emails: [], 
+          phones: [], 
+          userId: 0,
+          firstName: '',
+          middleName: '',
+          lastName: '',
+          age: 0,
+        };
 
-      // Reset the form
-      const emptyFormData = {
-        addresses: [], 
-        emails: [], 
-        phones: [], 
-        userId: 0,
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        age: 0,
-      };
+        setFormData(emptyFormData);
+        setAddresses([]);
+        setPhones([]);
+        setEmails([]);
 
-      setFormData(emptyFormData);
-      setAddresses([]);
-      setPhones([]);
-      setEmails([]);
+        // Reset current editing items
+        setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
+        setCurrentPhone({ number: '', type: '' });
+        setCurrentEmail({ address: '', type: '' });
 
-      // Reset current editing items
-      setCurrentAddress({ street: '', city: '', state: '', zip_code: '' });
-      setCurrentPhone({ number: '', type: '' });
-      setCurrentEmail({ address: '', type: '' });
-
-      setSubmitted(true)
-      setShowForm(false) // Return to card view after submission
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create datasheet')
-      console.error('Error creating datasheet:', err)
-    } finally {
-      setLoading(false)
-    }
+        setSubmitted(true)
+        setShowForm(false) // Return to card view after submission
+      }
+    })
   }
 
   const handleDelete = async (id: number) => {
@@ -215,20 +190,17 @@ function DatasheetPage() {
       return
     }
 
-    try {
-      setDeletingIds(prev => new Set(prev).add(id))
-      await datasheetApi.delete(id)
-      setDatasheets(prev => prev.filter(ds => ds.id !== id))
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to delete datasheet')
-      console.error('Error deleting datasheet:', err)
-    } finally {
-      setDeletingIds(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(id)
-        return newSet
-      })
-    }
+    setDeletingIds(prev => new Set(prev).add(id))
+    
+    deleteDatasheetMutation.mutate(id, {
+      onSettled: () => {
+        setDeletingIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(id)
+          return newSet
+        })
+      }
+    })
   }
 
   return (
@@ -236,12 +208,12 @@ function DatasheetPage() {
       <h1 className="text-3xl font-bold mb-6">Personal Information Datasheet</h1>
 
       {/* Error Message */}
-      {error && (
+      {(error || createDatasheetMutation.error || deleteDatasheetMutation.error) && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
           <p className="font-bold">Error!</p>
-          <p>{error}</p>
+          <p>{error?.message || createDatasheetMutation.error?.message || deleteDatasheetMutation.error?.message || 'An error occurred'}</p>
           <button
-            onClick={loadDatasheets}
+            onClick={() => loadDatasheets()}
             className="mt-2 text-sm underline hover:no-underline"
           >
             Try again
@@ -258,11 +230,11 @@ function DatasheetPage() {
       )}
 
       {/* Loading State */}
-      {loading && (
+      {(loading || createDatasheetMutation.isPending) && (
         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6">
           <div className="flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
-            <p>Loading...</p>
+            <p>{createDatasheetMutation.isPending ? 'Creating datasheet...' : 'Loading...'}</p>
           </div>
         </div>
       )}
@@ -655,14 +627,14 @@ function DatasheetPage() {
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={createDatasheetMutation.isPending}
                 className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                  loading
+                  createDatasheetMutation.isPending
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                 }`}
               >
-                {loading ? (
+                {createDatasheetMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Creating...

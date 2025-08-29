@@ -1,4 +1,4 @@
-import type { DatasheetCreate, DatasheetRead } from './types';
+import type { DatasheetCreate, DatasheetRead, ScanCreate, ScanRead } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_CRAWLER_API || 'http://localhost:3000';
 
@@ -152,6 +152,21 @@ export const datasheetApi = {
   async delete(id: number): Promise<{ message: string }> {
     return fetchApi<{ message: string }>(`/datasheets/${id}`, {
       method: 'DELETE',
+    });
+  },
+};
+
+export const scanApi = {
+  // Get all scans for the current user
+  async getAll(): Promise<ScanRead[]> {
+    return fetchApi<ScanRead[]>('/scans');
+  },
+
+  // Create a new scan
+  async create(scan: ScanCreate): Promise<ScanRead> {
+    return fetchApi<ScanRead>('/scans', {
+      method: 'POST',
+      body: JSON.stringify(scan),
     });
   },
 };

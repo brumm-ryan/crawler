@@ -10,7 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ScansService, CreateScanDto, ScanRead } from './scans.service';
+import { ScansService, type CreateScanDto, ScanRead } from './scans.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthUser } from '../auth/auth.service';
 
