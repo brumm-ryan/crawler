@@ -4,7 +4,6 @@
   "scripts": {
     "build": "tsc",
     "start": "tsx src/temporal/worker.ts",
-    "workflow": "tsx src/temporal/client.ts",
     "postinstall": "playwright install"
   },
   "dependencies": {

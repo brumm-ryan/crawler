@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { DatasheetModule } from './datasheets/datasheet.module';
 import { TemporalModule } from './temporal/temporal.module';
 import { AuthModule } from './auth/auth.module';
+import { ScansModule } from './scans/scans.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     TemporalModule,
     DatasheetModule,
+    ScansModule,
   ],
   controllers: [],
   providers: [],

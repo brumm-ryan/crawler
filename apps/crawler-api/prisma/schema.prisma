@@ -19,6 +19,7 @@ model User {
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   datasheets   Datasheet[]
+  scans        Scan[]
 
   @@map("users")
 }
@@ -36,6 +37,7 @@ model Datasheet {
   addresses  Address[]
   phones     Phone[]
   emails     Email[]
+  scans      Scan[]
 
   @@map("datasheets")
 }
@@ -76,4 +78,18 @@ model Email {
   updatedAt   DateTime  @updatedAt
 
   @@map("emails")
+}
+
+model Scan {
+  id          Int       @id @default(autoincrement())
+  externalId  String?   @map("external_id")
+  status      String    @default("pending")
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  datasheetId Int
+  datasheet   Datasheet @relation(fields: [datasheetId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("scans")
 }
