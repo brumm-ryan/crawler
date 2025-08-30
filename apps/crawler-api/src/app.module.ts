@@ -5,6 +5,7 @@ import { DatasheetModule } from './datasheets/datasheet.module';
 import { TemporalModule } from './temporal/temporal.module';
 import { AuthModule } from './auth/auth.module';
 import { ScansModule } from './scans/scans.module';
+import { ScanResultsModule } from './scan-results/scan-results.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ScansModule } from './scans/scans.module';
     TemporalModule,
     DatasheetModule,
     ScansModule,
+    ScanResultsModule,
   ],
   controllers: [],
   providers: [],

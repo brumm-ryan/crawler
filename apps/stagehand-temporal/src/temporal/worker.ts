@@ -4,6 +4,7 @@ import * as activities from './activities';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { getRedisClient, closeRedisConnection } from '../services/redis';
+import {WORKER_QUEUE_NAMES} from "./activities/shared/worker_queue_names";
 
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
@@ -19,11 +20,23 @@ async function run() {
   });
 
   const workers: Worker[] = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < parseInt(process.env.APP_QUEUE_WORKER_COUNT, 10); i++) {
     const worker = await Worker.create({
+      identity: `worker-${WORKER_QUEUE_NAMES.APP_QUEUE}-${i}`,
       workflowsPath: resolve(__dirname, './workflows.ts'),
       activities,
-      taskQueue: 'crawler-queue',
+      taskQueue: WORKER_QUEUE_NAMES.APP_QUEUE,
+      connection
+    });
+    workers.push(worker);
+  }
+
+  for (let j = 0; j < parseInt(process.env.WEB_QUEUE_WORKER_COUNT, 10); j++) {
+    const worker = await Worker.create({
+      identity: `worker-${WORKER_QUEUE_NAMES.WEB_QUEUE}-${j}`,
+      workflowsPath: resolve(__dirname, './workflows.ts'),
+      activities,
+      taskQueue: WORKER_QUEUE_NAMES.WEB_QUEUE,
       connection
     });
     workers.push(worker);

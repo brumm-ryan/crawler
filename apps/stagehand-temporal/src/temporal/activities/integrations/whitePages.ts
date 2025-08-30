@@ -1,17 +1,17 @@
 import {z} from "zod";
 import {fillFormFields} from "../../../services/form-filler";
-import {DataSheet, SiteResults, SiteResultsSchema} from "../../types";
+import {ActivityTask, DataSheet, SiteResults, SiteResultsSchema} from "../../types";
 import {getStagehand} from "../../../services/stagehand";
 
-export async function runWhitePages(dataSheet: DataSheet): Promise<SiteResults> {
+export async function runWhitePages(task: ActivityTask): Promise<SiteResults> {
     const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling white pages');
     // Navigate to whitepages.com
-    await page.goto("https://www.whitepages.com/");
+    await page.goto(task.url, {waitUntil: "domcontentloaded"});
 
     // Use the generalized form filling functionality with custom mappings
-    await fillFormFields(page, dataSheet);
+    await fillFormFields(page, task.data);
 
     // Act to submit the search
     await page.act("Click the search button");

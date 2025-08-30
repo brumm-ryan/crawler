@@ -1,18 +1,19 @@
 import {fillFormFields} from "../../../services/form-filler";
-import {DataSheet, SiteResults, SiteResultsSchema} from "../../types";
+import {ActivityTask, SiteResults, SiteResultsSchema} from "../../types";
 import {getStagehand} from "../../../services/stagehand";
 import {actWithCache} from "../../../utils";
 
-export async function runPeopleWhiz(dataSheet: DataSheet): Promise<SiteResults> {
+export async function runPeopleWhiz(task: ActivityTask): Promise<SiteResults> {
     const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling people whiz');
     // Navigate to https://www.peoplewhiz.com/
-    await page.goto("https://www.peoplewhiz.com/");
+    await page.goto(task.url);
+    //    await page.goto(`https://www.peoplewhiz.com/hflow/results/${dataSheet.firstName}/~/${dataSheet.lastName}/{}/IL/~?SID=SURyBVKzPMj3CewP3AQpiowNTyzzRlKa`);
 
     await actWithCache(page, 'Click agree to the popup', {cacheKey: 'runPeopleWhiz-popup-button', selfHeal: true })
 
-    await fillFormFields(page, dataSheet);
+    await fillFormFields(page, task.data);
 
     await actWithCache(page, "Click the search button", {cacheKey: "runPeopleWhiz-search-button", selfHeal: true})
     await page.waitForTimeout(1000);

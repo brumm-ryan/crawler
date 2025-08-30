@@ -3,9 +3,12 @@ import {
   Get,
   Post,
   Body,
+  Param,
+  Patch,
   HttpException,
   HttpStatus,
   Logger,
+  ParseIntPipe,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -63,6 +66,55 @@ export class ScansController {
       throw new HttpException(
         {
           message: 'Failed to fetch scans',
+          error: error.message,
+          details: error.stack,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { status: string }
+  ): Promise<ScanRead> {
+    this.logger.log(`Updating status for scan ID: ${id} to: ${body.status}`);
+    
+    try {
+      const result = await this.scansService.updateStatus(id, body.status);
+      this.logger.log(`Successfully updated status for scan ID: ${id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to update status for scan ID: ${id}`, error.stack);
+      this.logger.error(`Error details:`, error);
+      
+      throw new HttpException(
+        {
+          message: 'Failed to update scan status',
+          error: error.message,
+          details: error.stack,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get(':id/workflow-status')
+  async getWorkflowStatus(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    this.logger.log(`Getting workflow status for scan ID: ${id}`);
+    
+    try {
+      const result = await this.scansService.getWorkflowStatus(id);
+      this.logger.log(`Successfully fetched workflow status for scan ID: ${id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to fetch workflow status for scan ID: ${id}`, error.stack);
+      this.logger.error(`Error details:`, error);
+      
+      throw new HttpException(
+        {
+          message: 'Failed to fetch workflow status',
           error: error.message,
           details: error.stack,
         },

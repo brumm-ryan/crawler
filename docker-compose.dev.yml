@@ -141,6 +141,7 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - REDIS_HOST=redis
       - BROWSERLESS=browserless:3000
+      - CRAWLER_API_URL=crawl-api-dev:3000
     volumes:
       # Mount source code for hot reloading
       - ./apps/stagehand-temporal:/app/apps/stagehand-temporal

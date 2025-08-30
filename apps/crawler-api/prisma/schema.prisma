@@ -81,15 +81,50 @@ model Email {
 }
 
 model Scan {
-  id          Int       @id @default(autoincrement())
-  externalId  String?   @map("external_id")
-  status      String    @default("pending")
+  id          Int          @id @default(autoincrement())
+  externalId  String?      @map("external_id")
+  status      String       @default("pending")
   userId      Int
-  user        User      @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   datasheetId Int
-  datasheet   Datasheet @relation(fields: [datasheetId], references: [id])
+  datasheet   Datasheet    @relation(fields: [datasheetId], references: [id])
+  results     ScanResult[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("scans")
+}
+
+model ScanResult {
+  id          Int       @id @default(autoincrement())
+  scanId      Int       @map("scan_id")
+  scan        Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  piiSourceId Int?      @map("pii_source_id")
+  piiSource   PiiSource? @relation(fields: [piiSourceId], references: [id])
+  url         String
+  status      String    // "success", "error", "timeout", etc.
+  data        Json?     // Store the extracted data as JSON
+  error       String?   // Error message if status is error
+  metadata    Json?     // Additional metadata (response time, headers, etc.)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@map("scans")
+  @@map("scan_results")
+}
+
+model PiiSource {
+  id           Int          @id @default(autoincrement())
+  name         String       // Human-readable name for the source
+  activityName String
+  url          String       // Base URL of the PII source
+  searchUrl    String       // Base URL with replacable query params
+  type         String       // Type of source (e.g., "people_search", "social_media", "data_broker")
+  isActive     Boolean      @default(true) @map("is_active")
+  description  String?      // Optional description of what this source provides
+  metadata     Json?        // Additional configuration or metadata
+  scanResults  ScanResult[]
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@map("pii_sources")
 }

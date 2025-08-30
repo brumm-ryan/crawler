@@ -13,6 +13,13 @@ export interface DataSheet extends FormData {
     state: string;
 }
 
+export interface ActivityTask {
+    activityName: string,
+    piiSourceId: number, // Reference to the PiiSource record
+    url: string,
+    data: DataSheet;
+}
+
 export const ListingSchema = z.object({
     names: z.array(z.object({name: z.string()})),
     ages: z.array(z.object({age: z.string()})),

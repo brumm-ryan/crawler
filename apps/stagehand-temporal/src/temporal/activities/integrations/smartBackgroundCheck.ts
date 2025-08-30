@@ -1,12 +1,12 @@
-import {DataSheet, SiteResults, SiteResultsSchema} from "../../types";
+import {ActivityTask, DataSheet, SiteResults, SiteResultsSchema} from "../../types";
 import {getStagehand} from "../../../services/stagehand";
 
-export async function runSmartBackgroundCheck(dataSheet: DataSheet): Promise<SiteResults> {
+export async function runSmartBackgroundCheck(task: ActivityTask): Promise<SiteResults> {
     const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling smartBackgroundCheck');
 
-    const searchUrl = `https://www.smartbackgroundchecks.com/people/${dataSheet.firstName}-${dataSheet.lastName}/${dataSheet.city}/${dataSheet.lastName}`
+    const searchUrl = `${task.url}/people/${task.data.firstName}-${task.data.lastName}/${task.data.city}/${task.data.lastName}`
 
     await page.goto(searchUrl, {waitUntil: "domcontentloaded"});
 
