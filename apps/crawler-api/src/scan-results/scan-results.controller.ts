@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Param,
   Patch,
@@ -18,29 +17,6 @@ export class ScanResultsController {
 
   constructor(private readonly scanResultsService: ScanResultsService) {}
 
-  @Post()
-  async create(@Body() createScanResultDto: CreateScanResultDto): Promise<ScanResultRead> {
-    this.logger.log(`Creating new scan result for scan ID: ${createScanResultDto.scanId}, URL: ${createScanResultDto.url}`);
-    this.logger.debug(`Create scan result payload:`, JSON.stringify(createScanResultDto, null, 2));
-    
-    try {
-      const result = await this.scanResultsService.create(createScanResultDto);
-      this.logger.log(`Successfully created scan result with ID: ${result.id} for scan: ${createScanResultDto.scanId}`);
-      return result;
-    } catch (error) {
-      this.logger.error(`Failed to create scan result for scan ID: ${createScanResultDto.scanId}, URL: ${createScanResultDto.url}`, error.stack);
-      this.logger.error(`Error details:`, error);
-      
-      throw new HttpException(
-        {
-          message: 'Failed to create scan result',
-          error: error.message,
-          details: error.stack,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
 
   @Get('scan/:scanId')
   async findAllForScan(@Param('scanId', ParseIntPipe) scanId: number): Promise<ScanResultRead[]> {

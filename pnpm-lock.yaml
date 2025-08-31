@@ -116,7 +116,16 @@ importers:
       '@prisma/extension-accelerate':
         specifier: ^2.0.2
         version: 2.0.2(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.8.3))(typescript@5.8.3))
+      '@temporalio/activity':
+        specifier: ^1.11.8
+        version: 1.11.8
       '@temporalio/client':
+        specifier: ^1.11.8
+        version: 1.11.8
+      '@temporalio/common':
+        specifier: ^1.11.8
+        version: 1.11.8
+      '@temporalio/worker':
         specifier: ^1.11.8
         version: 1.11.8
       '@workos-inc/node':
@@ -5179,10 +5188,6 @@ packages:
     resolution: {integrity: sha512-LnL6Z3GGDPht/AigwRh2dvL9PQPFQ8skEpVrWZXLWBYmqcaojHNN0onvHzie6rq7EWKrrBfPYqNEzTJgiwEQDQ==}
     engines: {node: '>=6'}
 
-  webpack-sources@3.3.2:
-    resolution: {integrity: sha512-ykKKus8lqlgXX/1WjudpIEjqsafjOTcOJqxnAbMLAu/KCsDCJ6GBtvscewvTkrn24HsnvFwrSCbenFrhtcCsAA==}
-    engines: {node: '>=10.13.0'}
-
   webpack-sources@3.3.3:
     resolution: {integrity: sha512-yd1RBzSGanHkitROoPFd6qsrxt+oFhg/129YzheDGqeustzX0vTZJZsSsQjVQC4yzBQ56K55XU8gaNCtIzOnTg==}
     engines: {node: '>=10.13.0'}
@@ -5192,16 +5197,6 @@ packages:
 
   webpack@5.100.2:
     resolution: {integrity: sha512-QaNKAvGCDRh3wW1dsDjeMdDXwZm2vqq3zn6Pvq4rHOEOGSaUMgOOjG2Y9ZbIGzpfkJk9ZYTHpDqgDfeBDcnLaw==}
-    engines: {node: '>=10.13.0'}
-    hasBin: true
-    peerDependencies:
-      webpack-cli: '*'
-    peerDependenciesMeta:
-      webpack-cli:
-        optional: true
-
-  webpack@5.99.9:
-    resolution: {integrity: sha512-brOPwM3JnmOa+7kd3NsmOUOwbDAj8FT9xDsG3IW0MgbN9yZV7Oi/s/+MNQ/EcSMqw7qfoRyXPoeEWT8zLVdVGg==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -6932,11 +6927,11 @@ snapshots:
       memfs: 4.17.2
       rxjs: 7.8.2
       source-map: 0.7.4
-      source-map-loader: 4.0.2(webpack@5.99.9(@swc/core@1.11.31))
+      source-map-loader: 4.0.2(webpack@5.100.2(@swc/core@1.11.31))
       supports-color: 8.1.1
-      swc-loader: 0.2.6(@swc/core@1.11.31)(webpack@5.99.9(@swc/core@1.11.31))
+      swc-loader: 0.2.6(@swc/core@1.11.31)(webpack@5.100.2(@swc/core@1.11.31))
       unionfs: 4.5.4
-      webpack: 5.99.9(@swc/core@1.11.31)
+      webpack: 5.100.2(@swc/core@1.11.31)
     transitivePeerDependencies:
       - '@swc/helpers'
       - esbuild
@@ -10107,11 +10102,11 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
-  source-map-loader@4.0.2(webpack@5.99.9(@swc/core@1.11.31)):
+  source-map-loader@4.0.2(webpack@5.100.2(@swc/core@1.11.31)):
     dependencies:
       iconv-lite: 0.6.3
       source-map-js: 1.2.1
-      webpack: 5.99.9(@swc/core@1.11.31)
+      webpack: 5.100.2(@swc/core@1.11.31)
 
   source-map-support@0.5.13:
     dependencies:
@@ -10223,11 +10218,11 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
-  swc-loader@0.2.6(@swc/core@1.11.31)(webpack@5.99.9(@swc/core@1.11.31)):
+  swc-loader@0.2.6(@swc/core@1.11.31)(webpack@5.100.2(@swc/core@1.11.31)):
     dependencies:
       '@swc/core': 1.11.31
       '@swc/counter': 0.1.3
-      webpack: 5.99.9(@swc/core@1.11.31)
+      webpack: 5.100.2(@swc/core@1.11.31)
 
   swr@2.3.3(react@19.1.0):
     dependencies:
@@ -10270,17 +10265,6 @@ snapshots:
       serialize-javascript: 6.0.2
       terser: 5.41.0
       webpack: 5.100.2(@swc/core@1.11.31)
-    optionalDependencies:
-      '@swc/core': 1.11.31
-
-  terser-webpack-plugin@5.3.14(@swc/core@1.11.31)(webpack@5.99.9(@swc/core@1.11.31)):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.25
-      jest-worker: 27.5.1
-      schema-utils: 4.3.2
-      serialize-javascript: 6.0.2
-      terser: 5.41.0
-      webpack: 5.99.9(@swc/core@1.11.31)
     optionalDependencies:
       '@swc/core': 1.11.31
 
@@ -10681,8 +10665,6 @@ snapshots:
 
   webpack-node-externals@3.0.0: {}
 
-  webpack-sources@3.3.2: {}
-
   webpack-sources@3.3.3: {}
 
   webpack-virtual-modules@0.6.2: {}
@@ -10747,37 +10729,6 @@ snapshots:
       terser-webpack-plugin: 5.3.14(@swc/core@1.11.31)(webpack@5.100.2(@swc/core@1.11.31))
       watchpack: 2.4.4
       webpack-sources: 3.3.3
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
-
-  webpack@5.99.9(@swc/core@1.11.31):
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.14.1
-      browserslist: 4.25.0
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.18.1
-      es-module-lexer: 1.7.0
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.0
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 4.3.2
-      tapable: 2.2.2
-      terser-webpack-plugin: 5.3.14(@swc/core@1.11.31)(webpack@5.99.9(@swc/core@1.11.31))
-      watchpack: 2.4.4
-      webpack-sources: 3.3.2
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild

@@ -66,7 +66,7 @@ export class ScansService {
         scanId: scan.id,
         crawlTasks: crawlTasks
       }], {
-        taskQueue: 'app-queue', // Match your workflow's task queue
+        taskQueue: 'web-queue', // Match your workflow's task queue
         workflowId: `crawl-scan-${scan.id}`,
       });
 

@@ -5,6 +5,7 @@ import type { DatasheetCreate } from './types'
 // Query keys
 export const queryKeys = {
   scans: ['scans'] as const,
+  scanResults: (scanId: number) => ['scan-results', scanId] as const,
   datasheets: ['datasheets'] as const,
   datasheet: (id: number) => ['datasheets', id] as const,
 }
@@ -26,6 +27,14 @@ export function useCreateScan() {
       // Invalidate and refetch scans
       queryClient.invalidateQueries({ queryKey: queryKeys.scans })
     },
+  })
+}
+
+export function useScanResults(scanId: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: queryKeys.scanResults(scanId),
+    queryFn: () => scanApi.getResults(scanId),
+    enabled: enabled && !!scanId,
   })
 }
 

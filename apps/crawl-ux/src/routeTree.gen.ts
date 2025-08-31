@@ -15,11 +15,12 @@ import { Route as PublicImport } from './routes/_public'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as PublicLoginImport } from './routes/_public.login'
-import { Route as AuthenticatedMonitorImport } from './routes/_authenticated/monitor'
 import { Route as AuthenticatedDatasheetImport } from './routes/_authenticated/datasheet'
 import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContactImport } from './routes/_authenticated/contact'
 import { Route as AuthenticatedAboutImport } from './routes/_authenticated/about'
+import { Route as AuthenticatedMonitorIndexImport } from './routes/_authenticated/monitor/index'
+import { Route as AuthenticatedMonitorScanScanIdImport } from './routes/_authenticated/monitor/scan.$scanId'
 
 // Create/Update Routes
 
@@ -45,12 +46,6 @@ const PublicLoginRoute = PublicLoginImport.update({
   getParentRoute: () => PublicRoute,
 } as any)
 
-const AuthenticatedMonitorRoute = AuthenticatedMonitorImport.update({
-  id: '/monitor',
-  path: '/monitor',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-
 const AuthenticatedDatasheetRoute = AuthenticatedDatasheetImport.update({
   id: '/datasheet',
   path: '/datasheet',
@@ -74,6 +69,19 @@ const AuthenticatedAboutRoute = AuthenticatedAboutImport.update({
   path: '/about',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const AuthenticatedMonitorIndexRoute = AuthenticatedMonitorIndexImport.update({
+  id: '/monitor/',
+  path: '/monitor/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedMonitorScanScanIdRoute =
+  AuthenticatedMonitorScanScanIdImport.update({
+    id: '/monitor/scan/$scanId',
+    path: '/monitor/scan/$scanId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -128,19 +136,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDatasheetImport
       parentRoute: typeof AuthenticatedImport
     }
-    '/_authenticated/monitor': {
-      id: '/_authenticated/monitor'
-      path: '/monitor'
-      fullPath: '/monitor'
-      preLoaderRoute: typeof AuthenticatedMonitorImport
-      parentRoute: typeof AuthenticatedImport
-    }
     '/_public/login': {
       id: '/_public/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof PublicLoginImport
       parentRoute: typeof PublicImport
+    }
+    '/_authenticated/monitor/': {
+      id: '/_authenticated/monitor/'
+      path: '/monitor'
+      fullPath: '/monitor'
+      preLoaderRoute: typeof AuthenticatedMonitorIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/monitor/scan/$scanId': {
+      id: '/_authenticated/monitor/scan/$scanId'
+      path: '/monitor/scan/$scanId'
+      fullPath: '/monitor/scan/$scanId'
+      preLoaderRoute: typeof AuthenticatedMonitorScanScanIdImport
+      parentRoute: typeof AuthenticatedImport
     }
   }
 }
@@ -152,7 +167,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedContactRoute: typeof AuthenticatedContactRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDatasheetRoute: typeof AuthenticatedDatasheetRoute
-  AuthenticatedMonitorRoute: typeof AuthenticatedMonitorRoute
+  AuthenticatedMonitorIndexRoute: typeof AuthenticatedMonitorIndexRoute
+  AuthenticatedMonitorScanScanIdRoute: typeof AuthenticatedMonitorScanScanIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -160,7 +176,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedContactRoute: AuthenticatedContactRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDatasheetRoute: AuthenticatedDatasheetRoute,
-  AuthenticatedMonitorRoute: AuthenticatedMonitorRoute,
+  AuthenticatedMonitorIndexRoute: AuthenticatedMonitorIndexRoute,
+  AuthenticatedMonitorScanScanIdRoute: AuthenticatedMonitorScanScanIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -185,8 +202,9 @@ export interface FileRoutesByFullPath {
   '/contact': typeof AuthenticatedContactRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/datasheet': typeof AuthenticatedDatasheetRoute
-  '/monitor': typeof AuthenticatedMonitorRoute
   '/login': typeof PublicLoginRoute
+  '/monitor': typeof AuthenticatedMonitorIndexRoute
+  '/monitor/scan/$scanId': typeof AuthenticatedMonitorScanScanIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -196,8 +214,9 @@ export interface FileRoutesByTo {
   '/contact': typeof AuthenticatedContactRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/datasheet': typeof AuthenticatedDatasheetRoute
-  '/monitor': typeof AuthenticatedMonitorRoute
   '/login': typeof PublicLoginRoute
+  '/monitor': typeof AuthenticatedMonitorIndexRoute
+  '/monitor/scan/$scanId': typeof AuthenticatedMonitorScanScanIdRoute
 }
 
 export interface FileRoutesById {
@@ -209,8 +228,9 @@ export interface FileRoutesById {
   '/_authenticated/contact': typeof AuthenticatedContactRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/datasheet': typeof AuthenticatedDatasheetRoute
-  '/_authenticated/monitor': typeof AuthenticatedMonitorRoute
   '/_public/login': typeof PublicLoginRoute
+  '/_authenticated/monitor/': typeof AuthenticatedMonitorIndexRoute
+  '/_authenticated/monitor/scan/$scanId': typeof AuthenticatedMonitorScanScanIdRoute
 }
 
 export interface FileRouteTypes {
@@ -222,8 +242,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/datasheet'
-    | '/monitor'
     | '/login'
+    | '/monitor'
+    | '/monitor/scan/$scanId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -232,8 +253,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/datasheet'
-    | '/monitor'
     | '/login'
+    | '/monitor'
+    | '/monitor/scan/$scanId'
   id:
     | '__root__'
     | '/'
@@ -243,8 +265,9 @@ export interface FileRouteTypes {
     | '/_authenticated/contact'
     | '/_authenticated/dashboard'
     | '/_authenticated/datasheet'
-    | '/_authenticated/monitor'
     | '/_public/login'
+    | '/_authenticated/monitor/'
+    | '/_authenticated/monitor/scan/$scanId'
   fileRoutesById: FileRoutesById
 }
 
@@ -285,7 +308,8 @@ export const routeTree = rootRoute
         "/_authenticated/contact",
         "/_authenticated/dashboard",
         "/_authenticated/datasheet",
-        "/_authenticated/monitor"
+        "/_authenticated/monitor/",
+        "/_authenticated/monitor/scan/$scanId"
       ]
     },
     "/_public": {
@@ -310,13 +334,17 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/datasheet.tsx",
       "parent": "/_authenticated"
     },
-    "/_authenticated/monitor": {
-      "filePath": "_authenticated/monitor.tsx",
-      "parent": "/_authenticated"
-    },
     "/_public/login": {
       "filePath": "_public.login.tsx",
       "parent": "/_public"
+    },
+    "/_authenticated/monitor/": {
+      "filePath": "_authenticated/monitor/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/monitor/scan/$scanId": {
+      "filePath": "_authenticated/monitor/scan.$scanId.tsx",
+      "parent": "/_authenticated"
     }
   }
 }

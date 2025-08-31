@@ -156,6 +156,19 @@ export const datasheetApi = {
   },
 };
 
+export interface ScanResult {
+  id: number;
+  scanId: number;
+  piiSourceId: number;
+  url: string;
+  status: string;
+  data: any;
+  error?: string;
+  metadata: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const scanApi = {
   // Get all scans for the current user
   async getAll(): Promise<ScanRead[]> {
@@ -168,6 +181,11 @@ export const scanApi = {
       method: 'POST',
       body: JSON.stringify(scan),
     });
+  },
+
+  // Get scan results for a specific scan
+  async getResults(scanId: number): Promise<ScanResult[]> {
+    return fetchApi<ScanResult[]>(`/scan-results/scan/${scanId}`);
   },
 };
 

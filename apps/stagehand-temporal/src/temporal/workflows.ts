@@ -62,7 +62,7 @@ export async function crawlWorkflow(params: CrawlWorkflowParams): Promise<Record
                         results[task.piiSourceId] = res;
                         return res;
                     }).then(async res => {
-                    await appActivities.saveScanResult({
+                    await appActivities.createScanResult({
                         scanId: scanId,
                         url: res?.url || "",
                         piiSourceId: task.piiSourceId,
@@ -77,9 +77,9 @@ export async function crawlWorkflow(params: CrawlWorkflowParams): Promise<Record
                     errors[task.piiSourceId] = err;
 
                     try {
-                        await appActivities.saveScanResult({
+                        await appActivities.createScanResult({
                             scanId: scanId,
-                            url: null,
+                            url: "",
                             piiSourceId: task.piiSourceId,
                             error: err.message || String(err),
                             metadata: {
@@ -99,9 +99,9 @@ export async function crawlWorkflow(params: CrawlWorkflowParams): Promise<Record
             console.error(`Failed to start activity for site ${task.piiSourceId}:`, err);
             errors[task.piiSourceId] = err;
             try {
-                await appActivities.saveScanResult({
+                await appActivities.createScanResult({
                     scanId: scanId,
-                    url: null,
+                    url: "",
                     piiSourceId: task.piiSourceId,
                     error: `Failed to start activity: ${err.message || String(err)}`,
                     metadata: {
@@ -116,6 +116,35 @@ export async function crawlWorkflow(params: CrawlWorkflowParams): Promise<Record
     }
 
     await Promise.allSettled(promises);
+
+    // Determine final scan status based on results
+    const totalTasks = tasks.length;
+    const successCount = Object.keys(results).length;
+    const errorCount = Object.keys(errors).length;
+    
+    let finalStatus: string;
+    if (errorCount === totalTasks) {
+        // All tasks failed
+        finalStatus = 'failed';
+    } else if (successCount > 0) {
+        // At least some tasks succeeded
+        finalStatus = 'completed';
+    } else {
+        // No results but no explicit errors (shouldn't happen)
+        finalStatus = 'completed';
+    }
+
+    // Update scan status
+    try {
+        await appActivities.updateScanStatus({
+            scanId: scanId,
+            status: finalStatus
+        });
+        console.log(`Scan ${scanId} marked as ${finalStatus}. Results: ${successCount}/${totalTasks} successful, ${errorCount} failed.`);
+    } catch (error) {
+        console.error(`Failed to update scan ${scanId} status to ${finalStatus}:`, error);
+        // Don't fail the workflow if status update fails
+    }
 
     return results;
 }

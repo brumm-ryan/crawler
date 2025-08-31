@@ -20,16 +20,6 @@ async function run() {
   });
 
   const workers: Worker[] = [];
-  for (let i = 0; i < parseInt(process.env.APP_QUEUE_WORKER_COUNT, 10); i++) {
-    const worker = await Worker.create({
-      identity: `worker-${WORKER_QUEUE_NAMES.APP_QUEUE}-${i}`,
-      workflowsPath: resolve(__dirname, './workflows.ts'),
-      activities,
-      taskQueue: WORKER_QUEUE_NAMES.APP_QUEUE,
-      connection
-    });
-    workers.push(worker);
-  }
 
   for (let j = 0; j < parseInt(process.env.WEB_QUEUE_WORKER_COUNT, 10); j++) {
     const worker = await Worker.create({

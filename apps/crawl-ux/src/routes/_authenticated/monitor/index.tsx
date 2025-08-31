@@ -1,8 +1,8 @@
-import {createFileRoute} from '@tanstack/react-router'
+import {createFileRoute, Link} from '@tanstack/react-router'
 import {useScans, useDatasheets, useCreateScan} from '@/lib/queries.ts'
 import {useState} from "react";
 
-export const Route = createFileRoute('/_authenticated/monitor')({
+export const Route = createFileRoute('/_authenticated/monitor/')({
     component: MonitorPage,
 })
 
@@ -75,6 +75,7 @@ function MonitorPage() {
                 return 'bg-gray-100 text-gray-800'
         }
     }
+
 
     if (loading) {
         return (
@@ -231,9 +232,13 @@ function MonitorPage() {
                                     </div>
 
                                     <div className="bg-gray-50 px-6 py-3 border-t border-gray-100">
-                                        <button className="text-blue-500 hover:text-blue-700 font-medium">
+                                        <Link 
+                                            to="/monitor/scan/$scanId"
+                                            params={{ scanId: scan.id.toString() }}
+                                            className="text-blue-500 hover:text-blue-700 font-medium"
+                                        >
                                             View Details
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

@@ -7,7 +7,6 @@ export async function runPeopleWhiz(task: ActivityTask): Promise<SiteResults> {
     const stagehand = await getStagehand();
     const page = await stagehand.context.newPage();
     console.log('Activity: We\'re crawling people whiz');
-    // Navigate to https://www.peoplewhiz.com/
     await page.goto(task.url);
     //    await page.goto(`https://www.peoplewhiz.com/hflow/results/${dataSheet.firstName}/~/${dataSheet.lastName}/{}/IL/~?SID=SURyBVKzPMj3CewP3AQpiowNTyzzRlKa`);
 

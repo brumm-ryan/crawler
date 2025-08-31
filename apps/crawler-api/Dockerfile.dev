@@ -1,5 +1,12 @@
 # Development Dockerfile for crawler-api with hot reloading
-FROM node:22-alpine
+FROM node:22-slim
+
+# Install system dependencies needed for Temporal native binaries
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate

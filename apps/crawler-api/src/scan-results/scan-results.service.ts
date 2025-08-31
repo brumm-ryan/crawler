@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 export interface CreateScanResultDto {
   scanId: number;
+  piiSourceId: number;
   url: string;
   status: string;
   data?: any;
